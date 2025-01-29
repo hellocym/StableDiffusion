@@ -76,7 +76,7 @@ class UNET_AttentionBlock(nn.Module):
         self.layernorm_2 = nn.LayerNorm(channels)
         self.attention_2 = CrossAttention(n_head, channels, d_context, in_proj_bias=False)
         self.layernorm_3 = nn.LayerNorm(channels)
-        self.linear_geglu_1 = nn.Linear(channels, channels * 4)
+        self.linear_geglu_1 = nn.Linear(channels, 4 * channels * 2)
         self.linear_geglu_2 = nn.Linear(channels * 4, channels)
 
         self.conv_output = nn.Conv2d(channels, channels, kernel_size=1, padding=0)
@@ -152,7 +152,7 @@ class UNET_OutputLayer(nn.Module):
 class UNET(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encoders = nn.Module([
+        self.encoders = nn.ModuleList([
             # (Batch_size, 4, Height // 8, Width // 8)
             SwitchSequential(nn.Conv2d(4, 320, kernel_size=3, padding=1)),
             SwitchSequential(UNET_ResudialBlock(320, 320), UNET_AttentionBlock(8, 40)),
