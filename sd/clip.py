@@ -31,17 +31,17 @@ class CLIPLayer(nn.Module):
         # x: (Batch_size, Seq_Len, Dim)
         residue = x
 
-        x = self.norm1(x)
+        x = self.layernorm_1(x)
         x = self.attention(x, casual_mask=True)
         x += residue
 
         residue = x
 
-        x = self.norm2(x)
-        x = self.linear1(x)
+        x = self.layernorm_2(x)
+        x = self.linear_1(x)
         # quickGELU
         x = x * torch.sigmoid(1.702 * x)
-        x = self.linear2(x)
+        x = self.linear_2(x)
         x += residue
 
         return x

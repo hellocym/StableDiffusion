@@ -48,12 +48,12 @@ class VAE_ResidualBlock(nn.Module):
         
         residue = x
 
-        x = self.norm1(x)
+        x = self.groupnorm_1(x)
         x = F.silu(x)
-        x = self.conv1(x)
-        x = self.norm2(x)
+        x = self.conv_1(x)
+        x = self.groupnorm_2(x)
         x = F.silu(x)
-        x = self.conv2(x)
+        x = self.conv_2(x)
         
         return x + self.residual_layer(residue)
     
