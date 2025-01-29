@@ -24,7 +24,7 @@ class SwitchSequential(nn.Sequential):
         for layer in self:
             if isinstance(layer, UNET_AttentionBlock):
                 x = layer(x, context)
-            elif isinstance(layer, UNET_resudialBlock):
+            elif isinstance(layer, UNET_ResudialBlock):
                 x = layer(x, time)
             else:
                 x = layer(x)
@@ -207,6 +207,25 @@ class UNET(nn.Module):
             SwitchSequential(UNET_ResudialBlock(640, 320), UNET_AttentionBlock(8, 40)),
         ])
 
+    def forward(self, x, context, time):
+        # x: (Batch_Size, 4, Height / 8, Width / 8)
+        # context: (Batch_Size, Seq_Len, Dim) 
+        # time: (1, 1280)
+
+        skip_connections = []
+        for layers in self.encoders:
+            x = layers(x, context, time)
+            skip_connections.append(x)
+
+        x = self.bottleneck(x, context, time)
+
+        for layers in self.decoders:
+            # Since we always concat with the skip connection of the encoder, the number of features increases before being sent to the decoder's layer
+            x = torch.cat((x, skip_connections.pop()), dim=1) 
+            x = layers(x, context, time)
+        
+        return x
+
 class Diffusion(nn.Module):
     def __init__(self):
         super().__init__()
@@ -223,7 +242,7 @@ class Diffusion(nn.Module):
         time = self.time_embedding(time)
         
         # (Batch_size, 4, Height // 8, Width // 8) -> (Batch_size, 320, Height // 8, Width // 8)
-        output = self.unet(latent)
+        output = self.unet(latent, context, time)
         # (Batch_size, 320, Height // 8, Width // 8) -> (Batch_size, 4, Height // 8, Width // 8)
         output = self.final(output)
         # (Batch_size, 4, Height // 8, Width // 8)
