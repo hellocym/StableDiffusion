@@ -22,10 +22,10 @@ class CLIPLayer(nn.Module):
     def __init__(self, n_heads: int, n_embed: int):
         super().__init__()
         self.attention = SelfAttention(n_heads, n_embed)
-        self.norm1 = nn.LayerNorm(n_embed)
-        self.norm2 = nn.LayerNorm(n_embed)
-        self.linear1 = nn.Linear(n_embed, n_embed * 4)
-        self.linear2 = nn.Linear(n_embed * 4, n_embed)
+        self.layernorm_1 = nn.LayerNorm(n_embed)
+        self.layernorm_2 = nn.LayerNorm(n_embed)
+        self.linear_1 = nn.Linear(n_embed, n_embed * 4)
+        self.linear_2 = nn.Linear(n_embed * 4, n_embed)
 
     def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
         # x: (Batch_size, Seq_Len, Dim)
